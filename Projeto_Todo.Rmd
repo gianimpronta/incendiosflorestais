@@ -1,0 +1,629 @@
+---
+title: "INSTITUTO INFNET"
+subtitle: "GIANPAOLO MARTINS IMPRONTA"
+author: "ANÁLISE DE INCÊNDIOS FLORESTAIS NO BRASIL"
+date: "26 de novembro de 2017"
+toc-title: "SUMÁRIO"
+output: 
+      word_document:
+            df_print: kable
+            reference_docx: reference.docx
+            toc: true
+            toc_depth: 3
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(cache = TRUE)
+knitr::opts_chunk$set(comment = ">")
+```
+######### nova pagina
+####### GIANPAOLO MARTINS IMPRONTA
+
+
+
+
+
+####### __ANÁLISE DE INCÊNDIOS FLORESTAIS NO BRASIL__
+
+
+
+
+######## Trabalho apresentado como requisito parcial para obtenção de aprovação na disciplina Business Intelligence e Big Data Analytics: Valor, no Curso de Banco de Dados (BI e Big Data), no Instituto INFNET. 
+######## Prof.  Caio Souza
+
+######### nova pagina
+######## __RESUMO__
+
+_Os Incêndios florestais afetam diretamente o Brasil em diversos aspectos, tanto econômicos quanto ambientais, por isso, o objetivo desse trabalho é contribuir para a prevenção e combate desses fenômenos. Através de um modelo de predição tendo como base dados meteorológicos, os Corpos de Bombeiros de todo o Brasil podem se antecipar, entrar em estado de alerta e preparar seus recursos sem desperdício de tempo  com base em dados consistentes._
+
+_Palavras-chave: Data mining, Incêndio, Predição, Classificação, Boosting, Stochastic Gradient Boosting, Machine Learning, Aprendizado Supervisionado._
+
+######### nova pagina
+
+
+## 1 INTRODUÇÃO
+### 1.1 MOTIVAÇÃO
+
+As queimadas descontroladas e incêndios florestais ocorrem em todo o Brasil todos os anos, afetam diretamente, a fauna e flora brasileira, a qualidade do ar das cidades, além de ameaçar a integridade física de seus habitantes, por isso é necessários que os corpos de bombeiros possam se preparar para essas atividades, tanto em equipamento quanto em pessoal, para que possam atuar de forma rápida e eficiente no combate a esse tipo de evento, diminuindo os custos com os materiais que são comprados desnecessariamente e reorganizando as escalas de serviços, economizando os gastos com pessoal (adicional de serviço extra, alimentação, transporte, etc).
+
+### 1.2 OBJETIVOS
+
+Está analise consiste na utilização de observações de queimadas e incêndios florestais feitas pelo INPE 
+(Instituto Nacional de Pesquisas Espaciais) em conjunto com observações de estações meteorológicas convencionais do INMET( Instituto Nacional de Meteorologia) na tentativa de obter correlações entre as queimadas e incêndios florestais e as condições meteorológicas de forma a predizer quando ocorrerá um evento.
+
+
+######### nova pagina
+## 2 CENÁRIO ATUAL
+
+Não foi possível encontrar algum estudo brasileiro publicado que abordasse o assunto dessa forma, foram encontrados apenas estudos portugueses, o que indica que ainda é um assunto  a ser explorado.
+
+######### nova pagina
+## 3 ETAPAS PARA DESCOBERTA DE CONHECIMENTO
+
+A descoberta de conhecimento em bases de dados é dividida nas seguintes etapas:  
+
+- Seleção (obtenção dos dados): A fase de seleção de dados é onde itens específicos em um banco de dados    são selecionados para o processo de descoberta do conhecimento.  
+- Pré-processamento:
+
+    - Limpeza = As bases de dados são dinâmicas, incompletas, redundantes, ruidosas e esparsas,    
+      necessitando assim de um pré-processamento para limpá-las,  essa fase corrige as 
+      inconsistências encontradas nos dados para garantir a confiabilidade dos dados que serÃo 
+      utilizados pela mineração.
+    - Enriquecimento, Codificação ou Transformação = A fase de enriquecimento, codificação ou 
+      transformação é o processo onde a quantidade de dados é reduzida, agrupando valores em outras 
+      categorias sumarizadas, adicionando novos dados agregando-os aos existentes.
+- Mineração de dados = Na fase data mining, a garimpagem dos dados deve acontecer após todo o 
+    pré-processamento. Os dados, tratados e sumarizados, estarão livres de ruídos e conterão 
+    somente dados relevantes à pesquisa a ser realizada. O processo de data mining localiza padrões
+    através da judiciosa aplicação de processos de generalização, que é conhecido como indução.  
+  
+Pós-processamento: Criação de relatórios, apresentações para comunicar os resultados obtidos na análise.
+
+
+### 3.1 BASE DE DADOS
+#### __Conjunto de dados: Focos__
+
+Foi utilizada um série temporal extraída do Banco de Dados de queimadas do INPE (<https://prodwww-queimadas.dgi.inpe.br/bdqueimadas>) no formato CSV contendo dados do dia 01/01/2010 até 31/12/2016 com as seguintes colunas:
+
+- DataHora - Data e hora da detecção do foco
+- Satelite - Nome do satélite de referência
+- Pais - País da detecção
+- Estado - estado da detecção
+- Municipi - município da detecção
+- Bioma - bioma da detecção
+- DiaSemCh - A quantos dias a referida área está sem chuvas
+- Precipit - Precipitação no momento da detecção
+- RiscoFog - Risco de Fogo calculado para a área
+- Latitude - Latitude do foco
+- Longitud - Longitude do foco
+- AreaIndu - Determina se a área do foco é industrial
+- FRP - Potência Radiativa do Fogo
+ 
+Dimensões do conjunto de dados - 8.618.991 linhas e 13 colunas
+ 
+![Sumário do Conjunto de dados focos](sumariofocos.png)
+
+#### __Conjunto de dados: Meteorologia__
+
+Foram utilizados dados de estações meteorológicas convencionais obtidos através do Banco de Dados Meteorológicos para Ensino e Pesquisa (<http://www.inmet.gov.br/projetos/rede/pesquisa/>) contendo uma série temporal do dia 01/01/2010 ao dia 31/12/2016.
+
+- Estacao – Código da estação convencional
+- Data – Data da medição
+- Hora – Hora da medição
+- TempBulboSeco – temperatura medida com termômetro de bulbo seco
+- TempBulboUmido – temperatura medida com termômetro de bulbo úmido
+- UmidadeRelativa – umidade relativa do ar
+- PressaoAtmEstacao – pressão atmosférica no nível da estação
+- VelocidadeVento – velocidade do vento no momento da medição
+- Nebulosidade – nebulosidade no momento da medição
+- Latitude – Latitude da estação
+- Longitude – Longitude da estação
+
+Dimensões do conjunto de dados – 1.781.719 linhas e 11 colunas
+
+![Sumário do Conjunto de dados meteo](sumariometeo.png)
+
+### 3.2 SELEÇÃO DOS DADOS
+
+O conjunto de dados Focos não utilizará as colunas “AreaIndu” e “FRP” pois as mesmas estão vazias e não utilizará também a coluna “Pais” já todos os dados se referem apenas ao Brasil. 
+
+### 3.3 PROCESSAMENTO
+
+O conjunto de dados “Focos” foi obtido em 7 arquivos onde cada um contém os dados de 1º de janeiro até 31 de dezembro dos anos 2010, 2011, 2012, 2013, 2014, 2015 e 2016, portanto deverá ser realizada uma integração dos dados.
+
+- As colunas do conjunto de dados “Focos” estão com erros de grafia, serão renomeadas;
+- A coluna Bioma possui 38 dados faltantes e serão preenchidas utilizando Imputação multivariada por equações em cascata (pacote “mice” do R);
+- As colunas AreaIndu e FRP estão vazias em todos os arquivos e serão retiradas;
+- Após utilizar gráficos de histograma para verificar a distribuição, as colunas “DiasSemChuva”, “Precipitação” serão normalizadas;
+- A coluna "RiscoFogo" varia de 0 a 777,7 valor que é interpretado como "inválido" e representa locais onde existam corpos de água (rios, lagos, etc) ou seja, estes focos com 777,7 não deveriam estar representados como Foco de incêndio;
+- Serão adicionadas duas colunas, “Mes” e “Ano”, contendo respectivamente o mês e o ano da queimada observada;
+
+No conjunto de dados “Meteorologia” será realizada:
+
+- A criação de duas colunas contendo "mes"  e "ano";
+- Imputação dos valores faltantes utilizando o pacote "mice" através da técnica de predictive mean matching; 
+- Será realizada a normalização das colunas “TempBulboSeco”, “TempBulboUmido”, “UmidadeRelativa”, “PressaoAtmEstacao” para que os dados estejam na mesma escala ao serem analisados.
+
+#### 3.3.1 Limpeza do conjunto Focos
+
+###### Carregando Bibliotecas
+```{r bibliotecas, message = FALSE}
+library(readr)
+library(dplyr)
+library(ggplot2)
+library(maps)
+library(mapdata)
+library(mice)
+library(data.table)
+```
+
+###### Importando os dados
+Os dados de focos de incêndio foram obtidos em arquivos CSV divididos em série temporais que vão do dia 1^o^ de janeiro até o dia 31 de dezembro de cada ano, então, faz-se necessário efetuar a integração dos dados em um único Dataframe
+```{r importando focos, message = FALSE}
+col_types <- cols(DataHora = col_datetime(format = "%Y/%m/%d %H:%M:%S"))
+Focos_2010_01_01_2010_12_31 <- read_csv2("E:/Dropbox/Data Science/Datasets/Incendios florestais BR/Focos/Focos.2010-01-01.2010-12-31.csv", col_types = col_types, trim_ws = TRUE)
+Focos_2011_01_01_2011_12_31 <- read_csv2("E:/Dropbox/Data Science/Datasets/Incendios florestais BR/Focos/Focos.2011-01-01.2011-12-31.csv", col_types = col_types, trim_ws = TRUE)
+Focos_2012_01_01_2012_12_31 <- read_csv2("E:/Dropbox/Data Science/Datasets/Incendios florestais BR/Focos/Focos.2012-01-01.2012-12-31.csv", col_types = col_types, trim_ws = TRUE)
+Focos_2013_01_01_2013_12_31 <- read_csv2("E:/Dropbox/Data Science/Datasets/Incendios florestais BR/Focos/Focos.2013-01-01.2013-12-31.csv", col_types = col_types, trim_ws = TRUE)
+Focos_2014_01_01_2014_12_31 <- read_csv2("E:/Dropbox/Data Science/Datasets/Incendios florestais BR/Focos/Focos.2014-01-01.2014-12-31.csv", col_types = col_types, trim_ws = TRUE)
+Focos_2015_01_01_2015_12_31 <- read_csv2("E:/Dropbox/Data Science/Datasets/Incendios florestais BR/Focos/Focos.2015-01-01.2015-12-31.csv", col_types = col_types, trim_ws = TRUE)
+Focos_2016_01_01_2016_12_31 <- read_csv2("E:/Dropbox/Data Science/Datasets/Incendios florestais BR/Focos/Focos.2016-01-01.2016-12-31.csv", col_types = col_types, trim_ws = TRUE)
+df = list(Focos_2010_01_01_2010_12_31, Focos_2011_01_01_2011_12_31, Focos_2012_01_01_2012_12_31, 
+          Focos_2013_01_01_2013_12_31, Focos_2014_01_01_2014_12_31, Focos_2015_01_01_2015_12_31, 
+          Focos_2016_01_01_2016_12_31)
+```
+
+###### Checando a qualidade dos dados
+Foi constatada a presença de valores faltantes (NA), checando quantos não são NA em todos os Dataframes:
+```{r checando NA focos}
+for (i in df){
+  print(paste("AreaInd:", nrow(i[!is.na(i$AreaIndu),])))
+  print(paste("FRP:",nrow(i[!is.na(i$FRP),])))
+}
+```
+
+Todos os Dataframes possuem a coluna AreaIndu e a coluna FRP não preenchidas. Podemos excluir tais colunas.
+```{r excluindo areaindu e FRP}
+for (i in 1:7){
+  df[[i]]$AreaIndu = NULL
+  df[[i]]$FRP = NULL
+}
+```
+
+###### Integrando todos os dataframes num único
+```{r integrando focos}
+focos <- rbind(df[[1]], df[[2]], df[[3]], df[[4]], df[[5]], df[[6]], df[[7]])
+rm(Focos_2010_01_01_2010_12_31, Focos_2011_01_01_2011_12_31, Focos_2012_01_01_2012_12_31, Focos_2013_01_01_2013_12_31, Focos_2014_01_01_2014_12_31, Focos_2015_01_01_2015_12_31, Focos_2016_01_01_2016_12_31, df, i)
+
+```
+
+###### Correções
+Corrigindo nomes das colunas
+```{r corrigindo colunas focos,  }
+colunas <- names(focos)
+colunas[5] <- "Municipio"
+colunas[7] <- "DiasSemChuva"
+colunas[8] <- "Precipitacao"
+colunas[9] <- "RiscoFogo"
+colunas[11] <- "Longitude"
+names(focos) <- colunas
+
+```
+
+Transformando algumas colunas em Factors e retirando a coluna Pais, já que só existem dados do Brasil no dataset
+```{r transformando colunas focos,  }
+focos$Satelite = as.factor(focos$Satelite)
+focos$Pais = NULL
+focos$Estado = as.factor(focos$Estado)
+focos$Municipio = as.factor(focos$Municipio)
+focos$Bioma = as.factor(focos$Bioma)
+```
+
+###### Ainda existem registro faltando no Dataframe?
+```{r checando resgistros faltantes,  }
+sum(is.na(focos))
+for (i in 1:10){ print(paste(names(focos)[i],":", sum(is.na(focos[,i]))))}
+```
+
+Existem 38 registros que possuem a variável "Bioma" vazia. Preenchendo essas linhas através de imputação multivariada por equações em cascata (pacote mice)
+```{r Imputação focos, eval=FALSE}
+ini <- focos %>%
+      select(Latitude, Longitude, Bioma) %>%
+      mice(data = ., maxit = 0, seed = 1869)
+imp <- mice.mids(ini, maxit = 1) 
+focos2 <- complete(imp)
+focos$Bioma <- focos2$Bioma
+```
+
+###### Removendo valores inválidos para "RiscoFogo", ou seja, valores acima de 1
+```{r removendo RiscoFogo inválido, eval =FALSE}
+focos <- focos %>%
+      filter(RiscoFogo <= 1) 
+```
+
+```{r carregando arquivo processado, include = FALSE}
+load(file = "E:/Dropbox/Data Science/Projetos/IncendiosFlorestaisDA/dados/focos.RData")
+```
+
+#### 3.3.2 Limpeza do conjunto Meteo
+###### Carregando Bibliotecas
+```{r bibliotecas meteo, message= FALSE}
+library(reshape2)
+library(ff)
+library(sm)
+```
+
+###### Importando os dados
+```{r importando meteo}
+meteo <- read_delim("E:/Dropbox/Data Science/Datasets/Incendios florestais BR/estacoes_met/ meteo_data.csv", 
+                         ";", quote = "\\\"", escape_double = FALSE, 
+                         col_types = cols(Data = col_date(format = "%d/%m/%Y")), trim_ws = TRUE)
+summary(meteo)
+```
+###### Corrigindo o tipo das colunas PressaoAtmEstacao e Estacao
+```{r consertando colunas meteo}
+meteo$Estacao <- as.factor(meteo$Estacao)
+meteo$PressaoAtmEstacao <- as.numeric(meteo$PressaoAtmEstacao)
+```
+
+###### Criando duas colunas, "Mes" e "Ano"
+```{r criando mes e ano meteo}
+meteo <- meteo %>%
+      mutate(mes = as.factor(format(meteo$Data, "%m")), 
+             ano = as.factor(format(meteo$Data, "%Y")))
+```
+
+###### Checando qualidade dos dados
+Verificando as observações faltantes
+```{r verificando NA meteo}
+sapply(meteo, function(x)(sum(is.na(x))))
+```
+
+Checando a frequencia das estacoes por ano
+```{r frequencia estacos ano, warning= FALSE, message = 1:10}
+freq_table <- xtabs(~ano+Estacao, data=meteo) %>% 
+      t(.)
+freq_table <- reshape(as.data.frame(freq_table), timevar = "ano", idvar = "Estacao", direction = "wide")
+head(freq_table[which(freq_table == 0, arr.ind = TRUE)[,1],])
+```
+
+Existem estacoes que não tem dados para todos os anos, o que não pode ser reparado, vamos extrair essas estacoes do dataframe
+```{r retirando estacoes anos faltantes, warning = FALSE}
+retira <- freq_table[which(freq_table == 0, arr.ind = TRUE)[,1],]$Estacao
+meteo2 <- meteo[meteo$Estacao != retira,]
+```
+
+Distribuição de Valores faltantes por ano
+```{r distribuição valores faltantes por ano}
+aggregate(. ~ ano, data=meteo2, function(x) {sum(is.na(x))}, na.action = NULL) %>%
+      melt() %>% 
+      filter (value > 0) %>%
+      ggplot(data = . , aes(variable, value, fill = variable)) + 
+      geom_bar(stat = "identity") + facet_grid(ano ~ .)
+```
+
+###### Imputação dos valores faltantes através de imputação multivariada por equações em cascata (pacote mice)
+
+```{r imputação meteo, eval = FALSE}
+ini <- meteo2 %>%
+      select(c("TempBulboSeco", "TempBulboUmido", "PressaoAtmEstacao", 
+               "VelocidadeVento", "UmidadeRelativa", "Nebulosidade")) %>%
+      mice(data = ., maxit = 0, seed = 1869)
+
+imp_merged <- mice.mids(ini, maxit = 1)
+```
+```{r carregando imp_merged, include=FALSE}
+load(file = "E:/Dropbox/Data Science/Projetos/IncendiosFlorestaisDA/dados/imp_merged.RData")
+```
+```{r completando imp_merged}
+meteo3 <- complete(imp_merged)
+```
+
+###### Comparando a distribuição das variáveis antes e depois da imputação. 
+```{r comparando imputação, fig.height= 9}
+# Pequena função para auxiliar na plotagem
+plot.multi.dens <- function(s)
+{
+      junk.x = NULL
+      junk.y = NULL
+      for(i in 1:length(s)) {
+            junk.x = c(junk.x, density(s[[i]])$x)
+            junk.y = c(junk.y, density(s[[i]])$y)
+      }
+      xr <- range(junk.x)
+      yr <- range(junk.y)
+      plot(density(s[[1]]), xlim = xr, ylim = yr, main = "")
+      for(i in 1:length(s)) {
+            lines(density(s[[i]]), xlim = xr, ylim = yr, col = i)
+      }
+}
+
+par(mfrow = c(3, 2))
+for (i in names(meteo3)){
+      plot.multi.dens(list(cc(meteo2[[i]]), meteo3[[i]]))      
+}
+```
+
+###### Substituindo os valores antigos pelos novos
+```{r finalizando pré processamento meteo}
+for ( i in names(meteo3)){
+      meteo2[[i]] <- meteo3[[i]]
+}
+meteo <- meteo2
+rm("meteo2", "meteo3", imp_merged, i, freq_table, retira)
+```
+### 3.4 TRANSFORMAÇÃO
+#### 3.4.1 Distribuição das variáveis
+```{r distribuição focos, fig.height=8}
+par(mfcol = c(3,1))
+for (i in names(focos[6:8])){
+  hist(focos[[i]], xlab = i, main = "Sem normalização", probability = TRUE)
+  lines(density(focos[[i]]), col="red")
+}
+```
+Distribuição das variáveis do conjunto de dados "focos"
+
+![Distribuição das variáveis do conjunto de dados "meteo"](EDA meteo.png)
+
+#### 3.4.2 Comportamentos
+Alguns comportamentos observados sobre o Conjunto de dados Focos:
+![](EDA focos grafico2.png)
+No sentido horário a partir do topo esquerdo:
+
+1. A maioria das queimadas ocorrem entre agosto e novembro;
+2. A maioria das queimadas ocorrem nos biomas Amazônia e Cerrado;
+3. Há uma concentração de queimadas entre as Latitudes –4 e –15 inclusive;
+4. Há uma grande concentração de queimadas entre as Longitudes –44 e 52, inclusive
+
+![](concentracao queimadas.png)
+A área representa aproximadamente 54% de todas as queimadas do Brasil entre 2010 e 2016.
+
+![Distribuição dos focos de queimada de acordo com o bioma](waffle biomas.png)
+
+#### 3.4.3 Agregação
+Realizaremos as agregação dos dados por dia para agilizar o processamento dos dados.
+```{r agregação meteo}
+# Transformanddo em data.table para maior agilidade
+meteo <- setDT(meteo)
+# Retirando algumas colunas e agregando os dados por dia, utilizando a média do dia.
+meteo <- meteo[,-c("Hora", "mes", "ano"), with = FALSE
+                          ][, lapply(.SD, mean), by = .(Data, Estacao)]
+```
+
+
+
+#### 3.4.4 Integração dos Dataframes
+O objetivo da integração dos dataframes é reunir em um único dataframe as informações meteorológicas e de focos de incêndio, para cada dia 
+A integração dos dois Dataframes será realizada de acordo com o seguinte fluxo:
+
+1. Calcular o raio de alcance de cada estação meteorológica, ou seja, calcular a distancia entre cada estação e a estação mais próxima a ela e dividir essa distância por dois.
+2. Para cada registro do dataframe meteo:
+    * Selecionar todos os focos do dataframe focos que ocorreram no dia do registro;
+    * Calcular a distância entre a estação e todos os focos e verificar se eles estão dentro do raio de alcance da estação.
+    * Caso positivo, registrar o número de focos em uma nova coluna
+    * Caso negativo, registrar 0 focos em uma nova coluna
+3. Será criada uma nova coluna "incendio" e caso o registro tenha pelo menos 1 foco, essa coluna receberá "sim", caso contrário, "nao".
+
+```{r integração focos para meteo, eval = FALSE}
+# Função principal 
+juncao <- function(df_focos, df_meteo=df_meteo, dt_estacoes = NULL){
+      if (is.null(dt_estacoes)){
+            dt_estacoes <- cria_estacoes(df_meteo)
+      }     
+      dt_meteo <- setDT(df_meteo)
+      dt_focos <- setDT(df_focos)
+      dt_focos <- df_focos[,DataHora := as.IDate(DataHora)]
+      for (i in 1:nrow(dt_meteo)){
+            # para cada obs_meteo calcular se tem um foco dentro do raio da 
+            # estacão no dia
+            obs_meteo <- dt_meteo[i]
+            fdia <- focos_no_dia(obs_meteo, dt_focos)
+            if (nrow(fdia) > 0){ 
+                  n_focos <- checa_dist(obs_meteo, fdia, dt_estacoes)
+            } else {
+                  n_focos <- 0
+            }
+            dt_meteo[i, "n_focos"] <- n_focos 
+      }
+return(dt_meteo)
+}
+# Cria tabela das estações e seus raios de ação
+cria_estacoes <- function(df_meteo){
+      dt_estacoes <- setDT(df_meteo[,c("Estacao", "Longitude", "Latitude")])
+      dt_estacoes <- unique(dt_estacoes)
+      for (i in 1:nrow(dt_estacoes)){
+            dt_estacoes[i,"Raio"] <- cria_raio_estacao(dt_estacoes[i,2:3, 
+                                                                  with = FALSE],
+                                                       dt_estacoes)
+      }
+      dt_estacoes <- dt_estacoes[,lapply(.SD, mean), by = .(Estacao)]
+      setkey(dt_estacoes, Estacao)
+      return(dt_estacoes)
+}
+# Calcula os raios
+cria_raio_estacao <- function(ponto, dt_estacoes){
+      matriz <- setattr(as.data.frame(distm(ponto, as.matrix(dt_estacoes[,2:3, 
+                                                                with = FALSE])), 
+                                      stringsAsFactors=FALSE),
+                        "class", "data.table")
+      matriz <- matriz[,matriz > 100, with = FALSE]
+      idx <- which.min(matriz)
+      return(as.numeric(matriz[,..idx])/2)
+}
+# Separa o focos do referido dia
+focos_no_dia <- function(obs_meteo, dt_focos){
+      dia <- obs_meteo[,Data]
+      return(dt_focos[DataHora == as.IDate(format(dia, "%Y-%m-%d"))])
+}
+# Calcula a distância e confere se está dentro do raio de ação
+checa_dist <- function(obs_meteo, dt_focos, dt_estacoes){
+      # extrai número estacao
+      estacao <- obs_meteo[,Estacao]
+      # checa em estacoes pelas coordenadas da estacao
+      coord_estacao <- dt_estacoes[Estacao == estacao, 
+                                   c("Longitude", "Latitude"), 
+                                   with= FALSE]
+      # checa em estacoes pelo raio da estacao
+      raio_estacao <- dt_estacoes[Estacao == estacao, Raio]
+      # calcula distancias entre todos os focos e a estacao
+      matriz <- setattr(
+            as.data.frame(distm(coord_estacao, 
+                                as.matrix(dt_focos[,c("Longitude", "Latitude"), 
+                                                   with = FALSE])), 
+                                      stringsAsFactors=FALSE), "class", 
+                        "data.table")
+      # verifica se existem focos dentro do raio
+      n_focos <- sum(matriz <= raio_estacao)
+      # caso positivo retorna o número de focos
+      return(n_focos)
+}
+
+dt_estacoes <- cria_estacoes(meteo)
+dt_final <- juncao(df_focos, meteo, dt_estacoes)
+```
+```{r carregando dt_final, echo = FALSE}
+load(file = "E:/Dropbox/Data Science/Projetos/IncendiosFlorestaisDA/dados/dt_final.RData")
+```
+```{r criando colunas dt_final}
+# Recriando as colunas mes e ano
+dt_final[, c("mes", "ano") := list(as.factor(format(Data, "%m")), 
+                                   as.factor(format(Data, "%Y")))]
+```
+
+Criando a coluna Incêndio:
+```{r criando a coluna incendio}
+dt_final[, "incendio" := ifelse(n_focos > 0, "sim", "nao")]
+dt_final$incendio <- as.factor(dt_final$incendio)
+```
+
+### 3.5 MINERAÇÃO DE DADOS
+
+#### 3.5.1 TÉCNICA
+
+Primeiramente, o dataset será dividido em duas partes, na proporção de 20% para teste e 80% para treino.
+
+Será utilizado o algoritmo Stochastic Gradient Boosting treinado através do pacote caret, que possui a função _train_ e nos ajudará a selecionar os melhores parâmetros para o algoritmo. 
+
+A função _train_ utiliza testes de validação cruzada, validação cruzada repetida, bootstraping, e outras, para testar os parâmetros do modelo e, através de uma métrica pré-definida pelo usuário como a acurácia no caso de modelos de classificação e RMSE no caso de modelos de regressão, indicar o melhor parâmetro no treinamento do modelo.
+
+Após o treinamento o modelo treinado será utilizado no dataset de teste para medirmos a acurária real do modelo preditivo.
+
+#### 3.5.2 MINERAÇÃO
+
+Carregando bibliotecas
+
+```{r bibliotecas mineração, message= F}
+library(rattle)
+library(caret)
+library(gbm)
+library(maps)
+library(mapdata)
+```
+
+Separando em dois datasets, um para treino e outro para testes
+```{r Sampling}
+idx <- createDataPartition(dt_final$incendio, p = .75, list = FALSE)
+treino <- dt_final[idx,]
+teste <- dt_final[-idx,]
+```
+
+Configurando o método de treino do algoritmo, a função utilizará a validação cruzada com kfold = 10 para escolher os melhores parâmetros automaticamente.
+```{r train control}
+control <- trainControl(method="cv",
+                        number = 10,
+                        savePredictions="final", classProbs = T)
+```
+
+Fórmula a ser utilizada, ou seja as variáveis preditoras e a variável predita.
+```{r formula}
+form <- as.formula("incendio ~ Data+TempBulboSeco+TempBulboUmido+
+                         UmidadeRelativa+PressaoAtmEstacao+VelocidadeVento+
+                         Nebulosidade+Latitude+Longitude+mes")
+```
+
+Foram definidos alguns parâmetros de _tuning_ para o algoritmo, a função _train_ irá tentar ajustar o algoritmo utilizando a métrica "Accuracy", através da validação cruzada com k = 10.
+```{r train, eval=F}
+set.seed(1869)
+metric <- "Accuracy"
+tuning <-  expand.grid(interaction.depth = c(3, 6, 9),
+                          n.trees = c(100, 250), 
+                          shrinkage = .1,
+                          n.minobsinnode = c(10, 20, 30))
+fit.gbm <- train(form, data = treino,
+                 trControl = control, method = "gbm", 
+                 metric = metric, 
+                 tuneGrid = tuning)
+```
+```{r carregando fit.gbm, echo = F}
+load("E:/Dropbox/Data Science/Projetos/IncendiosFlorestaisDA/dados/fit.gbm.rds")
+```
+Resultados de diferentes parametrizações:
+```{r sumario do fit.gbm, echo=F}
+fit.gbm
+```
+
+### 3.6 INTERPRETAÇÃO E AVALIAÇÃO
+
+O seguinte gráfico mostra o a acurácia em relação aos diferentes parâmetros utilizados durante o ajuste.
+```{r plot parâmetros modelo}
+plot(fit.gbm)
+```
+
+Gráfico mostrando a importância de cada variável para a predição.
+```{r importância das variáveis}
+ggplot(varImp(fit.gbm)) + theme_minimal()
+```
+
+A partir desse modelo final vamos testar com o dataset "teste" que foi separado no início da análise.
+
+```{r Matriz confusão, options}
+pred <- predict(fit.gbm, teste)
+mat_conf <- confusionMatrix(pred, reference = teste$incendio, 
+                             positive = "sim")
+mat_conf
+```
+
+De acordo com a matriz de confusão:
+
+- O algoritmo teve uma acurácia de 85,09%, isto é, acertou 85% das previsões no geral;
+- 54,39% de sensibilidade; classificou como "sim" 54,39% dos eventos que realmente eram "sim";
+- 76,29% de precisão; 76,29% dos eventos classificados como "sim", realmente eram "sim"
+- 94,7% de especificidade; classificou como "nao" 94,7% dos eventos que realmente eram "nao";
+
+Essa diferença se deve ao fato das classes estarem desbalanceadas no dataset original, esse desbalanceamento é medido pela prevalência, que representa a proporção do valor positivo, no caso "sim", em relação à quantidade valores negativos, "nao". Para o nosso dataset de teste a prevalência está em 23,86%.
+
+Outro ponto a ser observado é que a maior parte das predições errôneas ocorreram em estações do centro-oeste e norte do país, e que a quantidade de estações nessas áres é relativamente baixa em relação a outras áreas do país.
+```{r mapa desempenho por estacao, options}
+ggplot(data =cbind(teste, pred)[,acerto := ifelse(incendio==pred, "sim", "nao")], 
+       aes(x=Longitude, y=Latitude, color = acerto), show.legend = T)+
+      borders("worldHires", "Brazil", fill = "#99d594") +
+      geom_count(aes(size = ..prop..), show.legend = T) + 
+      scale_size_area(max_size = 5) + theme_bw() +
+      scale_color_brewer(type = "div",direction = -1, palette = "Spectral")
+```
+
+
+## 4 CONCLUSÃO
+
+A partir dos dados meteorológicos e geográficos foi possível construir um modelo preditivo com uma acurácia média de 85%, utilizando como base principalmente as variáveis (em ordem de importância): Temperatura de Bulbo seco, Longitude, Latitude, Umidade Relativa, Nebulosidade. 
+O algoritmo Stochastic Gradiente Boosting utilizou 250 árvores com 9 níveis de profundidade onde cada nó possuía no mínimo 30 observações para chegar nesse patamar. 
+Cabe ressaltar que apesar da acurácia de 85% os dados de algumas estaçoes do centro-oeste e norte do país não tiveram uma boa taxa de acertos, como vimos no gráfico acima, o que pode ter sido causada pela pouca quantidade de estaçoes presentes nessa região. Outro ponto importante é que as estações convencionais são estações meteorológicas com medições e dados preenchidos à mão e a análise não está imune a esse tipo de erro.
+
+## BIBLIOGRAFIA
+
+- ASSOCIAÇÃO BRASILEIRA DE NORMAS TÉCNICAS – ABNT. NBR 10719: apresentação de relatórios técnico-científicos. Rio de Janeiro, 1989. 9 p.
+
+- ASSOCIAÇÃO BRASILEIRA DE NORMAS TÉCNICAS – ABNT. NBR 14724: informação e documentação: trabalhos acadêmicos: apresentação. Rio de Janeiro,
+2005. 9 p.
+
+- Introdução a Mineração de dados: com aplicações em R
+Leandro Augusto da Silva, Sarajane Marques Peres, Clodis Boscaroli – 1 Ed. – Rio de Janeiro: Elsevier, 2016
+
+- Bruni, Adriano Leal SPSS: guia prático para pesquisadores I Adriano Leal Bruni - São Paulo: Atlas, 2012. 
+
+- Data Science para Negócios de Foster Provost e Tom Fawcett (Altabooks). _Copyright 2013 Foster Provost e Tom Fawcett, 978-1-449-36132-7._
+
+- Practical Statistics for Data Scientists by Peter Bruce and Andrew Bruce (O’Reilly). _Copyright 2017 Peter Bruce and Andrew Bruce, 978-1-491-95296-2._
+
+- Building Predictive Models in R Using the caret Package. Max Kuhn Pfizer Global R&D`. _Journal of Statistical Software, November 2008, Volume 28, Issue 5._

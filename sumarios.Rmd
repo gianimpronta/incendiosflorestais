@@ -1,0 +1,17 @@
+---
+title: "Untitled"
+author: "Gianpaolo Martins Impronta"
+date: "26 de novembro de 2017"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r }
+load(file = "E:/Dropbox/Data Science/Projetos/IncendiosFlorestaisDA/dados/focos(bruto).RData")
+load(file = "E:/Dropbox/Data Science/Projetos/IncendiosFlorestaisDA/dados/meteo(bruto).RData")
+summary(focos)
+summary(meteo)
+```
